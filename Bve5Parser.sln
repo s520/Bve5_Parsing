@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bve5Parser", "Bve5Parser\Bve5Parser.csproj", "{889856C7-DDDE-49A1-85C2-7FE38C0B8532}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bve5ParserTests", "Bve5ParserTests\Bve5ParserTests.csproj", "{463BE1C5-F2B6-4A4C-B61E-C88245E616D6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{889856C7-DDDE-49A1-85C2-7FE38C0B8532}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{889856C7-DDDE-49A1-85C2-7FE38C0B8532}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{889856C7-DDDE-49A1-85C2-7FE38C0B8532}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{889856C7-DDDE-49A1-85C2-7FE38C0B8532}.Release|Any CPU.Build.0 = Release|Any CPU
+		{463BE1C5-F2B6-4A4C-B61E-C88245E616D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{463BE1C5-F2B6-4A4C-B61E-C88245E616D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{463BE1C5-F2B6-4A4C-B61E-C88245E616D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{463BE1C5-F2B6-4A4C-B61E-C88245E616D6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
