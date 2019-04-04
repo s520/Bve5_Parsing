@@ -74,7 +74,7 @@ OPN_BRA : '[' -> pushMode(ARG_MODE);
 
 WS : [\t \r\n]+ -> skip;
 COMMENT : ('#' | '//') ~[\r\n]* -> skip;
-ERROR_CHAR : .;
+ERROR_CHAR : . -> skip;
 
 // Ignore case
 fragment A : [aA];

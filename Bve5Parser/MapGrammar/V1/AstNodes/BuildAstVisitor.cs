@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Antlr4.Runtime.Misc;
 using Bve5Parser.MapGrammar.V1.ANTLR_SyntaxDefinitions;
 

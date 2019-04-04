@@ -120,7 +120,7 @@ QUOTE : '\'' -> pushMode(STRING_MODE);
 
 WS : [\t \r\n]+ -> skip;
 COMMENT : ('#' | '//') ~[\r\n]* -> skip;
-CHAR : .;
+ERROR_CHAR : . -> skip;
 
 // Ignore case
 fragment A : [aA];

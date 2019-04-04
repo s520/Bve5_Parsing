@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Bve5Parser.MapGrammar.V2.AstNodes;
 
 namespace Bve5Parser.MapGrammar.V2
@@ -11,27 +14,6 @@ namespace Bve5Parser.MapGrammar.V2
 	/// <typeparam name="T">ASTノードの種類</typeparam>
 	internal abstract class AstVisitor<T>
 	{
-		/// <summary>
-		/// 変数管理
-		/// </summary>
-		protected VariableStore Store;
-
-		/// <summary>
-		/// エラー保持
-		/// </summary>
-		protected ICollection<ParseError> Errors;
-
-		/// <summary>
-		/// 新しいインスタンスを生成します。
-		/// </summary>
-		/// <param name="store"></param>
-		/// <param name="errors"></param>
-		protected AstVisitor(VariableStore store, ICollection<ParseError> errors)
-		{
-			Store = store;
-			Errors = errors;
-		}
-
 		public abstract T Visit(RootNode node);
 		public abstract T Visit(DistanceNode node);
 		public abstract T Visit(Syntax1Node node);
@@ -68,7 +50,7 @@ namespace Bve5Parser.MapGrammar.V2
 		/// <returns>評価結果</returns>
 		public T Visit(MapGrammarAstNodes node)
 		{
-			return Visit((dynamic) node);
+			return Visit((dynamic)node);
 		}
 	}
 
@@ -78,16 +60,37 @@ namespace Bve5Parser.MapGrammar.V2
 	internal class EvaluateMapGrammarVisitor : AstVisitor<object>
 	{
 		/// <summary>
+		/// 変数管理
+		/// </summary>
+		protected VariableStore Store;
+
+		/// <summary>
+		/// エラー保持
+		/// </summary>
+		protected ICollection<ParseError> Errors;
+
+		/// <summary>
 		/// 評価結果
 		/// </summary>
-		private MapData evaluateData;
+		protected MapData evaluateData;
 
 		/// <summary>
 		/// 現在評価中の距離程
 		/// </summary>
-		private double nowDistance;
+		public double NowDistance { get; protected set; }
 
-		public EvaluateMapGrammarVisitor(VariableStore store, ICollection<ParseError> errors) : base(store, errors) { }
+		/// <summary>
+		/// 新しいインスタンスを生成します。
+		/// </summary>
+		/// <param name="store"></param>
+		/// <param name="errors"></param>
+		/// <param name="nowDistance"></param>
+		public EvaluateMapGrammarVisitor(VariableStore store, ICollection<ParseError> errors, double nowDistance = 0.0)
+		{
+			Store = store;
+			Errors = errors;
+			NowDistance = nowDistance;
+		}
 
 		/// <summary>
 		/// ルートノードの評価
@@ -132,7 +135,7 @@ namespace Bve5Parser.MapGrammar.V2
 		/// <returns>null</returns>
 		public override object Visit(DistanceNode node)
 		{
-			nowDistance = Convert.ToDouble(Visit(node.Value));
+			NowDistance = Convert.ToDouble(Visit(node.Value));
 
 			return null;
 		}
@@ -147,7 +150,7 @@ namespace Bve5Parser.MapGrammar.V2
 			//構文情報を登録する
 			var returnData = new SyntaxData
 			{
-				Distance = nowDistance,
+				Distance = NowDistance,
 				MapElement = new string[1]
 			};
 			returnData.MapElement[0] = node.MapElementName;
@@ -165,12 +168,6 @@ namespace Bve5Parser.MapGrammar.V2
 				}
 			}
 
-            if (node.MapElementName == "include")
-            {
-                returnData.Arguments.Add("startindex", node.Start.StartIndex);
-                returnData.Arguments.Add("stopindex", node.Stop.StopIndex);
-            }
-
 			return returnData;
 		}
 
@@ -184,7 +181,7 @@ namespace Bve5Parser.MapGrammar.V2
 			//構文情報を登録する
 			var returnData = new SyntaxData
 			{
-				Distance = nowDistance,
+				Distance = NowDistance,
 				MapElement = new string[1]
 			};
 			returnData.MapElement[0] = node.MapElementName;
@@ -216,7 +213,7 @@ namespace Bve5Parser.MapGrammar.V2
 			//構文情報を登録する
 			var returnData = new SyntaxData
 			{
-				Distance = nowDistance,
+				Distance = NowDistance,
 				MapElement = node.MapElementNames,
 				Key = Visit(node.Key).ToString(),
 				Function = node.FunctionName
@@ -621,10 +618,10 @@ namespace Bve5Parser.MapGrammar.V2
 		{
 			Random random = new Random();
 
-            if (node.Value == null)
-            {
-                return random.NextDouble();
-            }
+			if (node.Value == null)
+			{
+				return random.NextDouble();
+			}
 
 			var value = Visit(node.Value);
 
@@ -726,9 +723,141 @@ namespace Bve5Parser.MapGrammar.V2
 		/// <returns>現在の距離程(Double)</returns>
 		public override object Visit(DistanceVariableNode node)
 		{
-			return nowDistance;
+			return NowDistance;
 		}
 
 		#endregion
+	}
+
+	internal class EvaluateMapGrammarVisitorWithInclude : EvaluateMapGrammarVisitor
+	{
+		private readonly string dirAbsolutePath;
+
+		private string GetIncludeAbsolutePath(string path)
+		{
+			if (string.IsNullOrEmpty(path))
+			{
+				return path;
+			}
+
+			var fileRelativePath = path.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+			var fileAbsolutePath = Path.GetFullPath(Path.Combine(dirAbsolutePath, fileRelativePath));
+
+			if (File.Exists(fileAbsolutePath))
+			{
+				return fileAbsolutePath;
+			}
+
+			var splitFileRelativePath = fileRelativePath.Split(new char[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+			fileAbsolutePath = dirAbsolutePath;
+
+			for (int i = 0; i < splitFileRelativePath.Length - 1; i++)
+			{
+				var tmpDirAbsolutePath = Path.GetFullPath(Path.Combine(fileAbsolutePath, splitFileRelativePath[i]));
+
+				if (Directory.Exists(tmpDirAbsolutePath))
+				{
+					fileAbsolutePath = tmpDirAbsolutePath;
+				}
+				else
+				{
+					var reg = new Regex(splitFileRelativePath[i], RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+					var tmpDirRelativePath = Directory.EnumerateDirectories(fileAbsolutePath).First(f => reg.IsMatch(f));
+
+					if (string.IsNullOrEmpty(tmpDirRelativePath))
+					{
+						return path;
+					}
+
+					fileAbsolutePath = Path.GetFullPath(Path.Combine(fileAbsolutePath, tmpDirRelativePath));
+				}
+			}
+
+			{
+				var tmpFileAbsolutePath = Path.GetFullPath(Path.Combine(fileAbsolutePath, splitFileRelativePath.Last()));
+
+				if (File.Exists(tmpFileAbsolutePath))
+				{
+					fileAbsolutePath = tmpFileAbsolutePath;
+				}
+				else
+				{
+					var reg = new Regex(splitFileRelativePath.Last(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+					var tmpFileRelativePath = Directory.EnumerateFiles(fileAbsolutePath).First(f => reg.IsMatch(f));
+
+					if (string.IsNullOrEmpty(tmpFileRelativePath))
+					{
+						return path;
+					}
+
+					fileAbsolutePath = Path.GetFullPath(Path.Combine(fileAbsolutePath, tmpFileRelativePath));
+				}
+			}
+
+			return fileAbsolutePath;
+		}
+
+		public EvaluateMapGrammarVisitorWithInclude(VariableStore store, string dirAbsolutePath, ICollection<ParseError> errors, double nowDistance = 0.0) : base(store, errors, nowDistance)
+		{
+			this.dirAbsolutePath = dirAbsolutePath;
+		}
+
+		public override object Visit(Syntax1Node node)
+		{
+			var returnData = (SyntaxData)base.Visit(node);
+
+			// Include対応
+			if (returnData.MapElement[0] == "include")
+			{
+				object relativePath;
+				returnData.Arguments.TryGetValue("path", out relativePath);
+				var absolutePath = GetIncludeAbsolutePath(Convert.ToString(relativePath));
+
+				if (!File.Exists(absolutePath))
+				{
+					Errors.Add(node.CreateNewError(string.Format("指定されたファイル({0})が存在しません。", absolutePath)));
+				}
+
+				var parser = new MapV2Parser();
+				var encoding = parser.DetermineFileEncoding(absolutePath);
+				var includeAst = parser.ParseToAst(File.ReadAllText(absolutePath, encoding), absolutePath);
+
+				foreach (var error in parser.ParserErrors)
+				{
+					Errors.Add(error);
+				}
+
+				var evaluator = new EvaluateMapGrammarVisitorWithInclude(Store, dirAbsolutePath, Errors, NowDistance);
+				var includeData = (MapData)evaluator.Visit(includeAst);
+
+				if (!string.IsNullOrEmpty(includeData.StructureListPath))
+				{
+					evaluateData.StructureListPath = includeData.StructureListPath;
+				}
+				if (!string.IsNullOrEmpty(includeData.StationListPath))
+				{
+					evaluateData.StationListPath = includeData.StationListPath;
+				}
+				if (!string.IsNullOrEmpty(includeData.SignalListPath))
+				{
+					evaluateData.SignalListPath = includeData.SignalListPath;
+				}
+				if (!string.IsNullOrEmpty(includeData.SoundListPath))
+				{
+					evaluateData.SoundListPath = includeData.SoundListPath;
+				}
+				if (!string.IsNullOrEmpty(includeData.Sound3DListPath))
+				{
+					evaluateData.Sound3DListPath = includeData.Sound3DListPath;
+				}
+				evaluateData.Statements.AddRange(includeData.Statements);
+
+				NowDistance = evaluator.NowDistance;
+
+				return null;
+			}
+
+			return returnData;
+		}
 	}
 }

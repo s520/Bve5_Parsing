@@ -22,8 +22,8 @@ namespace Bve5ParserTests
 
 		[Test]
 		public void CurveTest()
-        {
-            Builder.AppendLine("100;");
+		{
+			Builder.AppendLine("100;");
 			Builder.AppendLine("Curve.Gauge(1.067);");
 			Builder.AppendLine("Curve.BeginTransition();");
 			Builder.AppendLine("Curve.BeginCircular(300, 0.105);");

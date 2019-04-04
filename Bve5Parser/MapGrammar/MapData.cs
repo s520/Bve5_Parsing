@@ -60,10 +60,10 @@ namespace Bve5Parser.MapGrammar
 			Statements = new List<SyntaxData>();
 		}
 
-        public MapData Clone()
-        {
-            return (MapData)MemberwiseClone();
-        }
+		public MapData Clone()
+		{
+			return (MapData)MemberwiseClone();
+		}
 
 		#region Override
 

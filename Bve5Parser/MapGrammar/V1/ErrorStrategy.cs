@@ -8,6 +8,8 @@ namespace Bve5Parser.MapGrammar.V1
 	/// </summary>
 	internal class MapV1GrammarErrorStrategy : MapGrammarErrorStrategy
 	{
+		public MapV1GrammarErrorStrategy(string filePath) : base(filePath) { }
+
 		/// <summary>
 		/// エラーの復帰処理を行います。
 		/// 次のステートメントの終わり、もしくは構文の終わり(EOF)まで字句を読み飛ばします。

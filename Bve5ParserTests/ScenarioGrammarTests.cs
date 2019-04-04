@@ -38,9 +38,9 @@ namespace Bve5ParserTests
 			Assert.AreEqual(double.Parse(route0_weight), data.Route[0].Weight);
 			Assert.AreEqual(route1_path, data.Route[1].Value);
 			Assert.AreEqual(double.Parse(route1_weight), data.Route[1].Weight);
-            Assert.AreEqual(vehicle, data.Vehicle[0].Value);
-            Assert.AreEqual(1.0, data.Vehicle[0].Weight);
-            Assert.AreEqual(title, data.Title);
-        }
+			Assert.AreEqual(vehicle, data.Vehicle[0].Value);
+			Assert.AreEqual(1.0, data.Vehicle[0].Weight);
+			Assert.AreEqual(title, data.Title);
+		}
 	}
 }

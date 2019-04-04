@@ -39,16 +39,10 @@ namespace Bve5ParserTests
 			Builder.AppendLine("include 'submap.txt';");
 			var data = Parser.Parse(Builder.ToString());
 			Assert.AreEqual("include", data.Statements[0].MapElement[0]);
-			object path, startIndex, stopIndex;
+			object path;
 			data.Statements[0].Arguments.TryGetValue("path", out path);
-            data.Statements[0].Arguments.TryGetValue("startindex", out startIndex);
-            data.Statements[0].Arguments.TryGetValue("stopindex", out stopIndex);
 			Assert.AreEqual("submap.txt", path);
-            var left = Builder.ToString().Substring(0, Convert.ToInt32(startIndex));
-            var right = Builder.ToString().Substring(Convert.ToInt32(stopIndex) + 1, Builder.ToString().Length - (Convert.ToInt32(stopIndex) + 1));
-            var replaceLeft = Regex.Replace(left, @"i\s*n\s*c\s*l\s*u\s*d\s*e\s*\z", string.Empty, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-            var replaceRight = Regex.Replace(right, @"^\s*;", string.Empty, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-        }
+		}
 
 		[Test]
 		public void CurveTest()
