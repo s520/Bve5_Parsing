@@ -783,7 +783,7 @@ namespace Bve5Parser.MapGrammar.V2
 				else
 				{
 					var reg = new Regex(splitFileRelativePath.Last(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-					var tmpFileRelativePath = Directory.EnumerateFiles(fileAbsolutePath).First(f => reg.IsMatch(f));
+					var tmpFileRelativePath = Directory.EnumerateFiles(fileAbsolutePath).FirstOrDefault(f => reg.IsMatch(f));
 
 					if (string.IsNullOrEmpty(tmpFileRelativePath))
 					{
